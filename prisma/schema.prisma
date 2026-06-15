@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  role          Role      @default(RESIDENT)
+  building      String?
+  tower         String?
+  createdAt     DateTime  @default(now())
+  donations     Donation[]
+  feederLogs    FeederLog[]
+  adoptions     Adoption[]
+}
+
+model Animal {
+  id            String    @id @default(cuid())
+  name          String
+  nickname      String?
+  type          AnimalType
+  zone          String
+  status        Status    @default(HEALTHY)
+  gender        String
+  ageApprox     String
+  description   String    @db.Text
+  image         String
+  tags          String[]
+  adoptable     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  healthRecords HealthRecord[]
+  feederLogs    FeederLog[]
+  missions      Mission[]
+  donations     Donation[]
+  adoptions     Adoption[]
+}
+
+model HealthRecord {
+  id          String   @id @default(cuid())
+  animalId    String
+  animal      Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  date        DateTime
+  event       String
+  status      RecordStatus
+  funded      Boolean  @default(false)
+  cost        Int?
+  raised      Int?
+  vetName     String?
+  receiptUrl  String?
+}
+
+model FeederLog {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  animalId    String
+  animal      Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  date        DateTime @default(now())
+  photoUrl    String
+  notes       String?
+  latitude    Float?
+  longitude   Float?
+}
+
+model Mission {
+  id          String   @id @default(cuid())
+  animalId    String
+  animal      Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  title       String
+  description String   @db.Text
+  image       String
+  target      Int
+  raised      Int      @default(0)
+  donors      Int      @default(0)
+  daysLeft    Int
+  status      MissionStatus @default(ACTIVE)
+  updates     MissionUpdate[]
+  donations   Donation[]
+  createdAt   DateTime @default(now())
+}
+
+model MissionUpdate {
+  id          String   @id @default(cuid())
+  missionId   String
+  mission     Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  time        String
+  text        String
+  photoUrl    String?
+}
+
+model Donation {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  animalId    String?
+  animal      Animal?  @relation(fields: [animalId], references: [id], onDelete: SetNull)
+  missionId   String?
+  mission     Mission? @relation(fields: [missionId], references: [id], onDelete: SetNull)
+  amount      Int
+  type        DonationType
+  razorpayId  String?
+  status      PaymentStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+}
+
+model Adoption {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  animalId    String
+  animal      Animal   @relation(fields: [animalId], references: [id], onDelete: Cascade)
+  status      AdoptionStatus @default(PENDING)
+  meetDate1   DateTime?
+  meetDate2   DateTime?
+  meetDate3   DateTime?
+  createdAt   DateTime @default(now())
+}
+
+enum Role {
+  RESIDENT
+  FEEDER
+  ADMIN
+  TRUST
+}
+
+enum AnimalType {
+  DOG
+  CAT
+}
+
+enum Status {
+  HEALTHY
+  ADOPTABLE
+  URGENT
+  WATCHING
+  RECOVERING
+}
+
+enum RecordStatus {
+  RESOLVED
+  ACTIVE
+  URGENT
+  PLANNED
+  GOOD
+}
+
+enum MissionStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum DonationType {
+  ONE_TIME
+  MONTHLY
+  MISSION
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum AdoptionStatus {
+  PENDING
+  MEETING
+  TRIAL
+  APPROVED
+  COMPLETED
+}

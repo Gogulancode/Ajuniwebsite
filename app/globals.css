@@ -1,27 +1,100 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 42 47% 95%;
+    --foreground: 0 0% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 207 99% 31%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 47 100% 87%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 42 33% 93%;
+    --muted-foreground: 0 0% 33%;
+    --accent: 207 99% 31%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 348 100% 61%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 0% / 0.08;
+    --input: 0 0% 0% / 0.08;
+    --ring: 207 99% 31%;
+    --radius: 1rem;
   }
-}
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .glass {
+    @apply bg-white/90 backdrop-blur-xl border border-black/[0.08] rounded-2xl shadow-sm;
   }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-[#0178c8] bg-clip-text text-transparent;
+  }
+
+  .btn-gradient {
+    @apply bg-gradient-to-r from-primary to-[#0178c8] text-white;
+  }
+}
+
+/* Leaflet light map overrides */
+.leaflet-container {
+  background: #e5e3df !important;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #ffffff !important;
+  color: #1a1a1a !important;
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.leaflet-popup-close-button {
+  color: #555555 !important;
+}
+
+.leaflet-popup-close-button:hover {
+  color: #1a1a1a !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #faf6ed;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d4cdba;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b8b09a;
 }

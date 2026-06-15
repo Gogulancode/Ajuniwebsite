@@ -1,36 +1,139 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ajuni Foundation — Royal Palms Street Animal Network
+
+A production-ready full-stack web platform for Ajuni Foundation, a street animal welfare trust operating in Royal Palms, Aarey Colony, Mumbai.
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Framework | Next.js 14 (App Router) + TypeScript |
+| Styling | Tailwind CSS + shadcn/ui primitives |
+| Animations | Framer Motion |
+| Database | PostgreSQL + Prisma ORM |
+| Auth | NextAuth.js (Google OAuth + Credentials) |
+| Maps | React-Leaflet (CartoDB Dark Matter tiles) |
+| Payments | Razorpay |
+| Images | Cloudinary |
+
+## Design System
+
+- **Background:** `#0a0a0a`
+- **Card background:** `#0f172a`/70 with `backdrop-blur-xl`
+- **Primary accent:** `#0047AB` (logo blue)
+- **Secondary accent:** `#3B82F6`
+- **Warm accent:** `#F5E6C8`
+- **Status colors:** teal (healthy), blue (adoptable), rose (urgent), amber (watching), purple (recovering)
+- **Fonts:** `Poppins` (headings), `Inter` (body)
 
 ## Getting Started
 
-First, run the development server:
+### 1. Prerequisites
+
+- Node.js 18+
+- PostgreSQL database (local or cloud e.g. Neon, Supabase)
+- Google OAuth credentials (optional, for resident sign-in)
+- Razorpay account (optional, for real payments)
+- Cloudinary account (optional, for image uploads)
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Configure environment variables
+
+Copy `.env.example` to `.env` and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+```env
+DATABASE_URL="postgresql://username:password@localhost:5432/ajuni_foundation?schema=public"
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-super-secret-key"
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+RAZORPAY_KEY_ID=""
+RAZORPAY_KEY_SECRET=""
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=""
+CLOUDINARY_API_KEY=""
+CLOUDINARY_API_SECRET=""
+```
+
+### 4. Set up the database
+
+```bash
+npx prisma migrate dev --name init
+npm run db:seed
+```
+
+### 5. Run the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 6. Admin access
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Use the credentials login (Google OAuth can be configured separately):
 
-## Learn More
+- **Email:** `admin@ajunifoundation.in`
+- **Password:** `admin123`
 
-To learn more about Next.js, take a look at the following resources:
+## Project Structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+ajuni-foundation/
+├── app/                 # Next.js App Router
+│   ├── api/             # API routes
+│   ├── admin/           # Admin dashboard (protected)
+│   ├── feeders/         # Feeder dashboard (protected)
+│   ├── animal/[id]/     # Animal profile page
+│   ├── page.tsx         # Homepage
+│   └── layout.tsx       # Root layout
+├── components/          # React components
+├── hooks/               # Custom hooks
+├── lib/                 # Utilities, Prisma, Auth
+├── prisma/              # Prisma schema & seed
+├── types/               # TypeScript types
+└── public/              # Static assets
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Key Features
 
-## Deploy on Vercel
+- **Homepage:** Hero, live map, animal residents, rescue missions, adoption quiz, feeder leaderboard.
+- **Animal Profiles:** Full bio, health timeline, care team, sponsor/adopt CTAs.
+- **Feeder Dashboard:** Route schedule, feeding log with photo upload and geolocation.
+- **Admin Dashboard:** Animal/mission management, feeder verification, financial CSV export.
+- **Payments:** Razorpay integration for one-time and monthly donations.
+- **Maps:** Free dark-themed Leaflet map with zone markers and popups.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deployment
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Recommended platforms:
+
+- **Frontend:** Vercel
+- **Database:** Neon PostgreSQL
+- **Images:** Cloudinary
+- **Payments:** Razorpay (live keys for production)
+
+## Scripts
+
+```bash
+npm run dev          # Start dev server
+npm run build        # Production build
+npm run lint         # Run ESLint
+npm run db:migrate   # Run Prisma migrations
+npm run db:seed      # Seed the database
+npm run db:studio    # Open Prisma Studio
+```
+
+## Notes
+
+- The app uses **dark mode only**.
+- Maps work without API keys using free CartoDB tiles.
+- Razorpay and Cloudinary are optional for local development; the app degrades gracefully with mock data when keys are missing.
