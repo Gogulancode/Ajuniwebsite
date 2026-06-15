@@ -4,6 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { Adapter } from "next-auth/adapters";
 import { prisma } from "./prisma";
+import { demoSecret, isDemoMode } from "./env";
 
 export interface SessionUser {
   id?: string;
@@ -11,7 +12,8 @@ export interface SessionUser {
 }
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as Adapter,
+  // Demo mode does not use the Prisma adapter so the app works without a database.
+  adapter: isDemoMode ? undefined : (PrismaAdapter(prisma) as Adapter),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
@@ -66,5 +68,6 @@ export const authOptions: NextAuthOptions = {
     signIn: "/",
     error: "/",
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  // Fallback secret for demo previews only. Always set NEXTAUTH_SECRET in production.
+  secret: process.env.NEXTAUTH_SECRET || demoSecret,
 };

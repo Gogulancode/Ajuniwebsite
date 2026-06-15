@@ -2,14 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions, SessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Role, MissionStatus } from "@prisma/client";
+import { Role } from "@prisma/client";
+import { isDemoMode } from "@/lib/env";
+import { getMissions } from "@/lib/mock-data";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
+    if (isDemoMode) {
+      return NextResponse.json(getMissions());
+    }
+
     const missions = await prisma.mission.findMany({
-      where: { status: MissionStatus.ACTIVE },
+      where: { status: "ACTIVE" },
       include: {
         updates: true,
         animal: true,
@@ -33,6 +39,19 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
+
+    if (isDemoMode) {
+      return NextResponse.json(
+        {
+          success: true,
+          demo: true,
+          message: "Mission created in demo mode",
+          data: body,
+        },
+        { status: 201 }
+      );
+    }
+
     const { animalId, title, description, image, target, daysLeft } = body;
 
     const mission = await prisma.mission.create({

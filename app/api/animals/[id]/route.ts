@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions, SessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@prisma/client";
+import { isDemoMode } from "@/lib/env";
+import { getAnimalById } from "@/lib/mock-data";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +14,15 @@ export async function GET(
 ) {
   try {
     const { id } = params;
+
+    if (isDemoMode) {
+      const animal = getAnimalById(id);
+      if (!animal) {
+        return NextResponse.json({ error: "Animal not found" }, { status: 404 });
+      }
+      return NextResponse.json(animal);
+    }
+
     const animal = await prisma.animal.findUnique({
       where: { id },
       include: {
@@ -53,6 +64,16 @@ export async function PATCH(
     const body = await req.json();
     const { status, tags, nickname, adoptable } = body;
 
+    if (isDemoMode) {
+      return NextResponse.json({
+        success: true,
+        demo: true,
+        message: "Animal updated in demo mode",
+        id,
+        data: { status, tags, nickname, adoptable },
+      });
+    }
+
     const animal = await prisma.animal.update({
       where: { id },
       data: {
@@ -82,6 +103,16 @@ export async function DELETE(
     }
 
     const { id } = params;
+
+    if (isDemoMode) {
+      return NextResponse.json({
+        success: true,
+        demo: true,
+        message: "Animal deleted in demo mode",
+        id,
+      });
+    }
+
     await prisma.animal.delete({ where: { id } });
 
     return NextResponse.json({ success: true });

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isDemoMode } from "@/lib/env";
+import { getMissionById } from "@/lib/mock-data";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +11,15 @@ export async function GET(
 ) {
   try {
     const { id } = params;
+
+    if (isDemoMode) {
+      const mission = getMissionById(id);
+      if (!mission) {
+        return NextResponse.json({ error: "Mission not found" }, { status: 404 });
+      }
+      return NextResponse.json(mission);
+    }
+
     const mission = await prisma.mission.findUnique({
       where: { id },
       include: {

@@ -4,11 +4,29 @@ import { authOptions, SessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { Role, AnimalType, Status } from "@prisma/client";
+import { isDemoMode } from "@/lib/env";
+import { getAnimals } from "@/lib/mock-data";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
+    if (isDemoMode) {
+      const { searchParams } = new URL(req.url);
+      const type = searchParams.get("type") || undefined;
+      const zone = searchParams.get("zone") || undefined;
+      const status = searchParams.get("status") || undefined;
+      const adoptableParam = searchParams.get("adoptable");
+      return NextResponse.json(
+        getAnimals({
+          type,
+          zone,
+          status,
+          adoptable: adoptableParam !== null ? adoptableParam === "true" : undefined,
+        })
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const type = searchParams.get("type") || undefined;
     const zone = searchParams.get("zone") || undefined;
@@ -47,6 +65,14 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session || (session.user as SessionUser).role !== Role.ADMIN) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (isDemoMode) {
+      const body = await req.json();
+      return NextResponse.json(
+        { success: true, demo: true, message: "Animal created in demo mode", data: body },
+        { status: 201 }
+      );
     }
 
     const body = await req.json();

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { DonationType, PaymentStatus } from "@prisma/client";
+import { isDemoMode } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,21 @@ export async function POST(
       return NextResponse.json(
         { error: "Valid amount is required" },
         { status: 400 }
+      );
+    }
+
+    if (isDemoMode) {
+      return NextResponse.json(
+        {
+          success: true,
+          demo: true,
+          message: "Donation recorded in demo mode",
+          missionId: id,
+          amount: Number(amount),
+          userId,
+          animalId,
+        },
+        { status: 201 }
       );
     }
 

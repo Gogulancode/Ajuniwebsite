@@ -112,6 +112,29 @@ ajuni-foundation/
 - **Payments:** Razorpay integration for one-time and monthly donations.
 - **Maps:** Free dark-themed Leaflet map with zone markers and popups.
 
+## Demo Deployment
+
+You can deploy the site to Vercel immediately without setting up PostgreSQL by enabling demo mode.
+
+1. Fork / clone the repository and import it into Vercel.
+2. In the Vercel project settings, add these environment variables:
+
+```env
+DEMO_MODE=true
+NEXTAUTH_URL=https://your-vercel-url.vercel.app
+NEXTAUTH_SECRET=any-random-string-for-demo-preview
+```
+
+3. You do **not** need `DATABASE_URL`, `GOOGLE_CLIENT_ID`, `RAZORPAY_KEY_ID`, or `CLOUDINARY_*` keys for the demo.
+4. Deploy. The site will load with realistic mock animals, missions, feeder logs, and leaderboard data.
+
+Use the admin credentials to preview the trust dashboard:
+
+- **Email:** `admin@ajunifoundation.in`
+- **Password:** `admin123`
+
+> **Note:** Demo mode is for client previews only. Data changes (create, update, delete, donations, adoptions) return success responses but are not persisted.
+
 ## Deployment
 
 Recommended platforms:

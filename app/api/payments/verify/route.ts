@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { DonationType, PaymentStatus } from "@prisma/client";
+import { isDemoMode } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,19 @@ export async function POST(req: NextRequest) {
       missionId,
       userId,
     } = await req.json();
+
+    if (isDemoMode) {
+      return NextResponse.json({
+        success: true,
+        demo: true,
+        message: "Payment verified in demo mode",
+        amount: Number(amount),
+        type,
+        animalId,
+        missionId,
+        userId,
+      });
+    }
 
     const keySecret = process.env.RAZORPAY_KEY_SECRET;
     let verified = false;

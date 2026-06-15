@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { isDemoMode } from "@/lib/env";
+import { getFeederLogs } from "@/lib/mock-data";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +11,10 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const animalId = searchParams.get("animalId") || undefined;
     const userId = searchParams.get("userId") || undefined;
+
+    if (isDemoMode) {
+      return NextResponse.json(getFeederLogs({ animalId, userId }));
+    }
 
     const where: Prisma.FeederLogWhereInput = {};
     if (animalId) where.animalId = animalId;

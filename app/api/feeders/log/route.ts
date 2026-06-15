@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions, SessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isDemoMode } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "animalId and photoUrl are required" },
         { status: 400 }
+      );
+    }
+
+    if (isDemoMode) {
+      return NextResponse.json(
+        {
+          success: true,
+          demo: true,
+          message: "Feeding log submitted in demo mode",
+          userId,
+          animalId,
+          photoUrl,
+          notes,
+          latitude,
+          longitude,
+          date: new Date().toISOString(),
+        },
+        { status: 201 }
       );
     }
 

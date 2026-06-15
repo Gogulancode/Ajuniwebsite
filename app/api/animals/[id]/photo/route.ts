@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions, SessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@prisma/client";
+import { isDemoMode } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,16 @@ export async function POST(
         { error: "imageUrl is required" },
         { status: 400 }
       );
+    }
+
+    if (isDemoMode) {
+      return NextResponse.json({
+        success: true,
+        demo: true,
+        message: "Photo updated in demo mode",
+        id,
+        image: imageUrl,
+      });
     }
 
     const animal = await prisma.animal.update({

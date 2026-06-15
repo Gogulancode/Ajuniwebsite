@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Razorpay from "razorpay";
+import { isDemoMode } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +13,15 @@ export async function POST(req: NextRequest) {
         { error: "Valid amount is required" },
         { status: 400 }
       );
+    }
+
+    if (isDemoMode) {
+      return NextResponse.json({
+        id: `mock_order_${Date.now()}`,
+        amount: Number(amount),
+        currency: "INR",
+        mock: true,
+      });
     }
 
     const keyId = process.env.RAZORPAY_KEY_ID;

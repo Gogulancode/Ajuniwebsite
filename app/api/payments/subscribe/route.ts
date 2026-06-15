@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Razorpay from "razorpay";
 import { prisma } from "@/lib/prisma";
 import { DonationType, PaymentStatus } from "@prisma/client";
+import { isDemoMode } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,26 @@ export async function POST(req: NextRequest) {
         { error: "Valid amount is required" },
         { status: 400 }
       );
+    }
+
+    if (isDemoMode) {
+      const subscriptionId = `mock_subscription_${Date.now()}`;
+      return NextResponse.json({
+        subscriptionId,
+        demo: true,
+        message: "Subscription created in demo mode",
+        donation: {
+          id: `donation_demo_${Date.now()}`,
+          amount: Number(amount),
+          type: DonationType.MONTHLY,
+          status: PaymentStatus.SUCCESS,
+          razorpayId: subscriptionId,
+          userId,
+          animalId,
+          missionId: null,
+          createdAt: new Date().toISOString(),
+        },
+      });
     }
 
     const keyId = process.env.RAZORPAY_KEY_ID;

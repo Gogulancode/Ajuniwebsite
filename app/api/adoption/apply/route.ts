@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions, SessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isDemoMode } from "@/lib/env";
+import { getAnimalById } from "@/lib/mock-data";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +26,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "animalId is required" },
         { status: 400 }
+      );
+    }
+
+    if (isDemoMode) {
+      const animal = getAnimalById(animalId);
+      if (!animal || !animal.adoptable) {
+        return NextResponse.json(
+          { error: "Animal is not available for adoption" },
+          { status: 400 }
+        );
+      }
+      return NextResponse.json(
+        {
+          success: true,
+          demo: true,
+          message: "Adoption application submitted in demo mode",
+          id: `adoption_demo_${Date.now()}`,
+          userId,
+          animalId,
+          status: "PENDING",
+          createdAt: new Date().toISOString(),
+        },
+        { status: 201 }
       );
     }
 

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { AnimalType } from "@prisma/client";
 import { QuizAnswer } from "@/types";
+import { isDemoMode } from "@/lib/env";
+import { getQuizMatches } from "@/lib/mock-data";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +11,10 @@ export async function POST(req: NextRequest) {
   try {
     const { answers }: { answers: QuizAnswer } = await req.json();
     const { activity, experience, personality } = answers;
+
+    if (isDemoMode) {
+      return NextResponse.json(getQuizMatches({ activity, experience, personality }));
+    }
 
     const animals = await prisma.animal.findMany({
       where: { adoptable: true },

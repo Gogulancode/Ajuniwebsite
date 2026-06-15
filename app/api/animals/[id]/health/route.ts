@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions, SessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@prisma/client";
+import { isDemoMode } from "@/lib/env";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +21,19 @@ export async function POST(
     const body = await req.json();
     const { date, event, status, funded, cost, raised, vetName, receiptUrl } =
       body;
+
+    if (isDemoMode) {
+      return NextResponse.json(
+        {
+          success: true,
+          demo: true,
+          message: "Health record added in demo mode",
+          animalId: id,
+          data: { date, event, status, funded, cost, raised, vetName, receiptUrl },
+        },
+        { status: 201 }
+      );
+    }
 
     const healthRecord = await prisma.healthRecord.create({
       data: {
