@@ -1,3 +1,5 @@
+"use client";
+
 import { PawPrint, Heart, MapPin, Mail, Phone, AtSign, MessageCircle, Send } from "lucide-react";
 import { motion } from "framer-motion";
 
