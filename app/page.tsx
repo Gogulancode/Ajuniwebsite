@@ -301,7 +301,9 @@ export default function HomePage() {
   const [quizLoading, setQuizLoading] = useState(false);
   const [quizError, setQuizError] = useState<string | null>(null);
 
-  const [leaderboard, setLeaderboard] = useState<{ tower: string; coverage: number; feederCount: number }[]>([]);
+  const [leaderboard, setLeaderboard] = useState<
+    { tower: string; coverage: number; feederCount: number; animalCount?: number; feedCount?: number }[]
+  >([]);
   const [leaderboardLoading, setLeaderboardLoading] = useState(true);
   const [leaderboardError, setLeaderboardError] = useState<string | null>(null);
 
@@ -360,6 +362,11 @@ export default function HomePage() {
       }
     }
     fetchLeaderboard();
+
+    // Refresh leaderboard every 30 seconds so it stays current
+    // as new feeder logs come in
+    const interval = setInterval(fetchLeaderboard, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   async function handleQuizComplete(answers: Record<string, string>) {

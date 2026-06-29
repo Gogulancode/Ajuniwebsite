@@ -587,3 +587,75 @@ export function getQuizMatches(answers: {
 export function getUsers() {
   return users;
 }
+
+/**
+ * Dynamically calculate the zone leaderboard from feeder logs.
+ * Groups feeds by tower cluster, counts unique feeders in the last 7 days,
+ * and computes coverage as a percentage of the target feeder count
+ * (1 feeder per 4 animals, minimum 3).
+ */
+export function calculateLeaderboard() {
+  const now = new Date();
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+  // Get recent feeds (last 7 days)
+  const recentFeeds = feederLogs.filter((log) => new Date(log.date) >= sevenDaysAgo);
+
+  // Initialize stats for all known zones
+  const zoneStats = new Map<string, { userIds: Set<string>; feedCount: number }>();
+  const allZones = ["Tower Cluster A", "Tower Cluster B", "Tower Cluster C", "Tower Cluster D", "Aarey Edge"];
+  allZones.forEach((z) => zoneStats.set(z, { userIds: new Set(), feedCount: 0 }));
+
+  // Count animals per tower zone
+  const animalsPerZone = new Map<string, number>();
+  animals.forEach((a) => {
+    const towerZone = mapAnimalZoneToTower(a.zone);
+    animalsPerZone.set(towerZone, (animalsPerZone.get(towerZone) || 0) + 1);
+  });
+
+  // Process recent feeds
+  recentFeeds.forEach((feed) => {
+    const animal = animals.find((a) => a.id === feed.animalId);
+    if (!animal) return;
+    const towerZone = mapAnimalZoneToTower(animal.zone);
+    const stats = zoneStats.get(towerZone);
+    if (stats) {
+      stats.userIds.add(feed.userId);
+      stats.feedCount++;
+    }
+  });
+
+  // Build leaderboard entries
+  return allZones
+    .map((zone) => {
+      const stats = zoneStats.get(zone)!;
+      const animalCount = animalsPerZone.get(zone) || 0;
+      const targetFeeders = Math.max(3, Math.ceil(animalCount / 4));
+      const feederCount = stats.userIds.size;
+      const coverage = targetFeeders > 0 ? Math.min(100, Math.round((feederCount / targetFeeders) * 100)) : 0;
+
+      return {
+        tower: zone,
+        coverage,
+        feederCount,
+        animalCount,
+        feedCount: stats.feedCount,
+      };
+    })
+    .sort((a, b) => b.coverage - a.coverage);
+}
+
+/**
+ * Map an individual animal zone to its parent tower cluster.
+ */
+function mapAnimalZoneToTower(animalZone: string): string {
+  const zone = animalZone.toLowerCase();
+  if (zone.includes("tower a")) return "Tower Cluster A";
+  if (zone.includes("tower b")) return "Tower Cluster B";
+  if (zone.includes("tower c")) return "Tower Cluster C";
+  if (zone.includes("tower d")) return "Tower Cluster D";
+  if (zone.includes("back gate")) return "Tower Cluster B";
+  if (zone.includes("parking")) return "Tower Cluster C";
+  if (zone.includes("aarey") || zone.includes("green")) return "Aarey Edge";
+  return "Tower Cluster A"; // Default fallback
+}

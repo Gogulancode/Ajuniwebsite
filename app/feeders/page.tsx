@@ -16,6 +16,7 @@ import {
   Award,
   Navigation,
   Loader2,
+  ArrowRight,
 } from "lucide-react";
 import { GlassCard } from "@/components/GlassCard";
 import { ScrollReveal } from "@/components/ScrollReveal";
@@ -24,6 +25,51 @@ import { cn } from "@/lib/utils";
 import { Animal } from "@/types";
 
 export const dynamic = "force-dynamic";
+
+function calculateStreak(logs: any[]): number {
+  if (!logs.length) return 0;
+  const dates = [...new Set(logs.map((l) => {
+    const d = new Date(l.date);
+    return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  }))].sort().reverse();
+
+  let streak = 0;
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+  const yesterdayStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate() - 1}`;
+
+  // Check if active today or yesterday
+  const hasToday = dates.includes(todayStr);
+  const hasYesterday = dates.includes(yesterdayStr);
+  if (!hasToday && !hasYesterday) return 0;
+
+  // Count streak
+  const checkDate = new Date(today);
+  while (true) {
+    const dateStr = `${checkDate.getFullYear()}-${checkDate.getMonth()}-${checkDate.getDate()}`;
+    if (dates.includes(dateStr)) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+function calculateBadge(totalFeeds: number) {
+  if (totalFeeds >= 100) return { badgeTitle: "Neighborhood Legend", badgeProgress: 100 };
+  if (totalFeeds >= 50) return { badgeTitle: "Gold Guardian", badgeProgress: Math.round(((totalFeeds - 50) / 50) * 100) };
+  if (totalFeeds >= 20) return { badgeTitle: "Silver Feeder", badgeProgress: Math.round(((totalFeeds - 20) / 30) * 100) };
+  return { badgeTitle: "Bronze Beginner", badgeProgress: Math.round((totalFeeds / 20) * 100) };
+}
+
+function getNextBadgeMessage(totalFeeds: number) {
+  if (totalFeeds >= 100) return "You've reached the highest badge!";
+  if (totalFeeds >= 50) return `${100 - totalFeeds} more visits to unlock Neighborhood Legend.`;
+  if (totalFeeds >= 20) return `${50 - totalFeeds} more visits to unlock Gold Guardian.`;
+  return `${20 - totalFeeds} more visits to unlock Silver Feeder.`;
+}
 
 const mockRoutes = [
   { id: "r1", name: "Tower A — Morning round", time: "07:00 AM", animals: 6, checked: false },
@@ -49,6 +95,16 @@ export default function FeederDashboardPage() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
+  const [feederStats, setFeederStats] = useState({
+    visitsThisMonth: 0,
+    uniqueAnimalsFed: 0,
+    photosShared: 0,
+    streakDays: 0,
+    badgeProgress: 0,
+    badgeTitle: "Bronze Beginner",
+    totalFeeds: 0,
+  });
+
   function getErrorMessage(err: unknown) {
     return err instanceof Error ? err.message : "Something went wrong";
   }
@@ -71,6 +127,54 @@ export default function FeederDashboardPage() {
     }
     fetchAnimals();
   }, []);
+
+  useEffect(() => {
+    async function fetchFeederStats() {
+      if (!session?.user?.id) return;
+      try {
+        const res = await fetch(`/api/feeders/logs?userId=${session.user.id}`);
+        if (!res.ok) return;
+        const logs = await res.json();
+
+        const now = new Date();
+        const thisMonth = now.getMonth();
+        const thisYear = now.getFullYear();
+
+        // This month's logs
+        const monthLogs = logs.filter((l: any) => {
+          const d = new Date(l.date);
+          return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+        });
+
+        const visitsThisMonth = monthLogs.length;
+        const uniqueAnimalsFed = new Set(monthLogs.map((l: any) => l.animalId)).size;
+        const photosShared = monthLogs.filter((l: any) => l.photoUrl).length;
+        const totalFeeds = logs.length;
+
+        // Calculate streak (consecutive days with feeds)
+        const streakDays = calculateStreak(logs);
+
+        // Calculate badge progress
+        const { badgeTitle, badgeProgress } = calculateBadge(totalFeeds);
+
+        setFeederStats({
+          visitsThisMonth,
+          uniqueAnimalsFed,
+          photosShared,
+          streakDays,
+          badgeProgress,
+          badgeTitle,
+          totalFeeds,
+        });
+      } catch (err) {
+        console.error("Failed to fetch feeder stats:", err);
+      }
+    }
+
+    if (status === "authenticated") {
+      fetchFeederStats();
+    }
+  }, [session, status]);
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -166,6 +270,21 @@ export default function FeederDashboardPage() {
     );
   }
 
+  if (status === "unauthenticated") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center pt-20">
+        <GlassCard className="p-8 text-center max-w-sm">
+          <PawPrint className="w-12 h-12 text-primary mx-auto mb-4" />
+          <h2 className="font-heading text-xl font-bold text-[#1a1a1a] mb-2">Feeder Access</h2>
+          <p className="text-muted-foreground text-sm mb-6">Please sign in to access the feeder dashboard.</p>
+          <a href="/login" className="btn-gradient px-6 py-3 rounded-full font-semibold inline-flex items-center gap-2">
+            Sign In <ArrowRight className="w-4 h-4" />
+          </a>
+        </GlassCard>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background pt-20 pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-10">
@@ -181,7 +300,7 @@ export default function FeederDashboardPage() {
             </div>
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/10 border border-primary/20 text-primary text-sm font-medium">
               <Award className="w-4 h-4" />
-              Neighborhood Legend — 72%
+              {feederStats.badgeTitle} — {feederStats.badgeProgress}%
             </div>
           </div>
         </ScrollReveal>
@@ -401,19 +520,19 @@ export default function FeederDashboardPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground text-sm">Visits logged</span>
-                    <span className="text-[#1a1a1a] font-semibold">24</span>
+                    <span className="text-[#1a1a1a] font-semibold">{feederStats.visitsThisMonth}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground text-sm">Animals fed</span>
-                    <span className="text-[#1a1a1a] font-semibold">18</span>
+                    <span className="text-[#1a1a1a] font-semibold">{feederStats.uniqueAnimalsFed}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground text-sm">Photos shared</span>
-                    <span className="text-[#1a1a1a] font-semibold">31</span>
+                    <span className="text-[#1a1a1a] font-semibold">{feederStats.photosShared}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-muted-foreground text-sm">Streak</span>
-                    <span className="text-primary font-semibold">5 days</span>
+                    <span className="text-primary font-semibold">{feederStats.streakDays} days</span>
                   </div>
                 </div>
               </GlassCard>
@@ -467,10 +586,13 @@ export default function FeederDashboardPage() {
                   Badge Progress
                 </h3>
                 <div className="w-full h-3 rounded-full bg-black/[0.05] overflow-hidden mb-2">
-                  <div className="h-full w-[72%] bg-gradient-to-r from-primary to-secondary rounded-full" />
+                  <div
+                    className="h-full bg-gradient-to-r from-primary to-secondary rounded-full"
+                    style={{ width: `${feederStats.badgeProgress}%` }}
+                  />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  18 more visits to unlock Neighborhood Legend.
+                  {getNextBadgeMessage(feederStats.totalFeeds)}
                 </p>
               </GlassCard>
             </ScrollReveal>

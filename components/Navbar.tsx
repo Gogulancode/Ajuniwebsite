@@ -86,6 +86,12 @@ export function Navbar() {
             {navLinks.map((link) => (
               <NavLink key={link.href} href={link.href} label={link.label} />
             ))}
+            {session?.user?.role === "ADMIN" && (
+              <NavLink href="/admin" label="Admin" />
+            )}
+            {session?.user?.role === "FEEDER" && (
+              <NavLink href="/feeders" label="My Dashboard" />
+            )}
           </div>
 
           <div className="hidden md:flex items-center gap-4">
@@ -134,6 +140,9 @@ export function Navbar() {
                       </p>
                       <p className="text-xs text-muted-foreground truncate">
                         {user.email}
+                      </p>
+                      <p className="text-[10px] text-primary uppercase tracking-wider mt-0.5">
+                        {(user as any).role || "Resident"}
                       </p>
                     </div>
                     <DropdownMenu.Item
@@ -200,6 +209,24 @@ export function Navbar() {
                   {link.label}
                 </a>
               ))}
+              {session?.user?.role === "ADMIN" && (
+                <a
+                  href="/admin"
+                  onClick={() => setMobileOpen(false)}
+                  className="px-4 py-3 rounded-xl text-primary font-medium hover:bg-primary/5 transition-colors"
+                >
+                  Admin
+                </a>
+              )}
+              {session?.user?.role === "FEEDER" && (
+                <a
+                  href="/feeders"
+                  onClick={() => setMobileOpen(false)}
+                  className="px-4 py-3 rounded-xl text-primary font-medium hover:bg-primary/5 transition-colors"
+                >
+                  My Dashboard
+                </a>
+              )}
             </div>
 
             <div className="mt-8 flex flex-col gap-3">
