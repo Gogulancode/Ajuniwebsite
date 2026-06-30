@@ -130,9 +130,10 @@ export default function FeederDashboardPage() {
 
   useEffect(() => {
     async function fetchFeederStats() {
-      if (!session?.user?.id) return;
+      const userId = (session?.user as any)?.id;
+      if (!userId) return;
       try {
-        const res = await fetch(`/api/feeders/logs?userId=${session.user.id}`);
+        const res = await fetch(`/api/feeders/logs?userId=${userId}`);
         if (!res.ok) return;
         const logs = await res.json();
 
