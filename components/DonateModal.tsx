@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
-import * as confetti from "canvas-confetti";
+import confetti from "canvas-confetti";
 import { cn, formatCurrency } from "@/lib/utils";
 import { useToast } from "@/hooks/useToast";
 import { useDonation, DonationType, RazorpayOptions } from "@/hooks/useDonation";
