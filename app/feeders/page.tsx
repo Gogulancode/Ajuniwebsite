@@ -31,7 +31,7 @@ function calculateStreak(logs: any[]): number {
   const dates = Array.from(new Set(logs.map((l) => {
     const d = new Date(l.date);
     return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-  }))].sort().reverse();
+  }))).sort().reverse();
 
   let streak = 0;
   const today = new Date();
