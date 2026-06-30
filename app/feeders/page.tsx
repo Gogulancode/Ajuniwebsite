@@ -28,7 +28,7 @@ export const dynamic = "force-dynamic";
 
 function calculateStreak(logs: any[]): number {
   if (!logs.length) return 0;
-  const dates = [...new Set(logs.map((l) => {
+  const dates = Array.from(new Set(logs.map((l) => {
     const d = new Date(l.date);
     return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
   }))].sort().reverse();
