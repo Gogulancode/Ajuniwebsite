@@ -86,10 +86,10 @@ export function Navbar() {
             {navLinks.map((link) => (
               <NavLink key={link.href} href={link.href} label={link.label} />
             ))}
-            {session?.user?.role === "ADMIN" && (
+            {(session?.user as any)?.role === "ADMIN" && (
               <NavLink href="/admin" label="Admin" />
             )}
-            {session?.user?.role === "FEEDER" && (
+            {(session?.user as any)?.role === "FEEDER" && (
               <NavLink href="/feeders" label="My Dashboard" />
             )}
           </div>
@@ -209,7 +209,7 @@ export function Navbar() {
                   {link.label}
                 </a>
               ))}
-              {session?.user?.role === "ADMIN" && (
+              {(session?.user as any)?.role === "ADMIN" && (
                 <a
                   href="/admin"
                   onClick={() => setMobileOpen(false)}
@@ -218,7 +218,7 @@ export function Navbar() {
                   Admin
                 </a>
               )}
-              {session?.user?.role === "FEEDER" && (
+              {(session?.user as any)?.role === "FEEDER" && (
                 <a
                   href="/feeders"
                   onClick={() => setMobileOpen(false)}
